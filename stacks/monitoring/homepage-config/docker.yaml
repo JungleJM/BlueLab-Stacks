@@ -1,0 +1,19 @@
+---
+# Docker Integration for Homepage
+
+# This file enables Homepage to discover services automatically
+# based on Docker labels
+
+# Services with bluelab.service=true will be auto-discovered
+# and added to the appropriate categories based on their labels
+
+# Label schema:
+# - bluelab.service=true (required for discovery)
+# - bluelab.name=Service Name
+# - bluelab.category=Category Name
+# - bluelab.description=Service Description
+# - bluelab.port=Service Port
+# - bluelab.subdomain=Subdomain for ${DOMAIN_PREFIX}.local
+
+my-docker:
+  socket: /var/run/docker.sock

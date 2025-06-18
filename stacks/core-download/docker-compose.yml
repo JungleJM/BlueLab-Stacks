@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  deluge:
+    image: lscr.io/linuxserver/deluge:latest
+    container_name: bluelab-deluge
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - DELUGE_LOGLEVEL=error
+    volumes:
+      - ./deluge-config:/config
+      - ${DATA_DIR}/data/media/downloads:/downloads
+      - ${DATA_DIR}/data/media:/media
+    ports:
+      - "${DELUGE_PORT:-8112}:8112"
+      - "58846:58846"
+      - "58946:58946"
+    restart: unless-stopped
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=Deluge"
+      - "bluelab.category=Download"
+      - "bluelab.description=Primary torrent client"
+      - "bluelab.port=${DELUGE_PORT:-8112}"
+      - "bluelab.subdomain=downloads"
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: bluelab-qbittorrent
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - WEBUI_PORT=8080
+    volumes:
+      - ./qbittorrent-config:/config
+      - ${DATA_DIR}/data/media/downloads:/downloads
+      - ${DATA_DIR}/data/media:/media
+    ports:
+      - "${QBITTORRENT_PORT:-8080}:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    restart: unless-stopped
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=qBittorrent"
+      - "bluelab.category=Download"
+      - "bluelab.description=Secondary torrent client"
+      - "bluelab.port=${QBITTORRENT_PORT:-8080}"
+      - "bluelab.subdomain=qbit"
+
+  filebot:
+    image: jlesage/filebot:latest
+    container_name: bluelab-filebot
+    environment:
+      - USER_ID=${PUID:-1000}
+      - GROUP_ID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - KEEP_APP_RUNNING=1
+      - CLEAN_TMP_DIR=1
+    volumes:
+      - ./filebot-config:/config
+      - ${DATA_DIR}/data/media:/media
+      - ${DATA_DIR}/data/media/downloads:/downloads
+      - ./filebot-output:/output
+    ports:
+      - "5800:5800"
+    restart: unless-stopped
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=FileBot"
+      - "bluelab.category=Download"
+      - "bluelab.description=File organization tool"
+      - "bluelab.port=5800"
+      - "bluelab.subdomain=filebot"
+
+networks:
+  default:
+    name: ${BLUELAB_NETWORK:-bluelab-network}
+    external: true

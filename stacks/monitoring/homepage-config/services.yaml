@@ -1,0 +1,87 @@
+---
+# BlueLab Services Configuration
+
+- Dashboard:
+    - Homepage:
+        icon: homepage.png
+        href: http://localhost:${HOMEPAGE_PORT:-3000}
+        description: Main dashboard
+        widget:
+          type: homepage
+          url: http://localhost:${HOMEPAGE_PORT:-3000}
+
+- Management:
+    - Dockge:
+        icon: docker.png
+        href: http://localhost:${DOCKGE_PORT:-5001}
+        description: Container stack manager
+        widget:
+          type: dockge
+          url: http://localhost:${DOCKGE_PORT:-5001}
+
+    - Watchtower:
+        icon: watchtower.png
+        href: "#"
+        description: Automated updates
+        widget:
+          type: watchtower
+
+- Network:
+    - AdGuard Home:
+        icon: adguard-home.png
+        href: http://localhost:${ADGUARD_PORT:-3001}
+        description: DNS server with ad-blocking
+        widget:
+          type: adguard
+          url: http://localhost:${ADGUARD_PORT:-3001}
+          username: admin
+          password: admin
+
+    - Tailscale:
+        icon: tailscale.png
+        href: https://login.tailscale.com/admin/machines
+        description: VPN network access
+        ping: tailscale
+
+- Downloads:
+    - Deluge:
+        icon: deluge.png
+        href: http://localhost:${DELUGE_PORT:-8112}
+        description: Primary torrent client
+        widget:
+          type: deluge
+          url: http://localhost:${DELUGE_PORT:-8112}
+          password: deluge
+
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: http://localhost:${QBITTORRENT_PORT:-8080}
+        description: Secondary torrent client
+        widget:
+          type: qbittorrent
+          url: http://localhost:${QBITTORRENT_PORT:-8080}
+          username: admin
+          password: adminadmin
+
+- System:
+    - File Sharing:
+        icon: folder.png
+        href: "file://\\\\${HOST_IP}\\bluelab"
+        description: SMB network shares
+        ping: ${HOST_IP}
+
+    - PostgreSQL:
+        icon: postgres.png
+        href: "#"
+        description: Database server
+        widget:
+          type: postgres
+          url: postgres://bluelab:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT:-5432}/bluelab
+
+    - Redis:
+        icon: redis.png
+        href: "#"  
+        description: Cache server
+        widget:
+          type: redis
+          url: redis://localhost:${REDIS_PORT:-6379}

@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  samba:
+    image: dperson/samba:latest
+    container_name: bluelab-samba
+    environment:
+      - TZ=${TZ:-UTC}
+      - USER=${SMB_USER:-bluelab};${SMB_PASSWORD:-bluelab123}
+      - SHARE=bluelab;/data;yes;no;no;${SMB_USER:-bluelab};${SMB_USER:-bluelab};BlueLab Media Share
+      - SHARE2=media;/data/media;yes;no;no;${SMB_USER:-bluelab};${SMB_USER:-bluelab};Media Files
+      - SHARE3=downloads;/data/media/downloads;yes;no;no;${SMB_USER:-bluelab};${SMB_USER:-bluelab};Downloads
+      - SHARE4=photos;/data/photos;yes;no;no;${SMB_USER:-bluelab};${SMB_USER:-bluelab};Photos
+      - SHARE5=music;/data/music;yes;no;no;${SMB_USER:-bluelab};${SMB_USER:-bluelab};Music
+      - SHARE6=books;/data/books;yes;no;no;${SMB_USER:-bluelab};${SMB_USER:-bluelab};Books
+      - SHARE7=documents;/data/documents;yes;no;no;${SMB_USER:-bluelab};${SMB_USER:-bluelab};Documents
+    volumes:
+      - ${DATA_DIR}/data:/data
+      - ./samba-config:/etc/samba
+    ports:
+      - "445:445"
+      - "139:139"
+    restart: unless-stopped
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=SMB File Sharing"
+      - "bluelab.category=File Sharing"
+      - "bluelab.description=Network file sharing via SMB/CIFS"
+      - "bluelab.port=445"
+      - "bluelab.subdomain=files"
+
+  smb-discovery:
+    image: alpine:latest
+    container_name: bluelab-smb-discovery
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./discovery-script.sh:/discovery-script.sh
+    command: /bin/sh -c "chmod +x /discovery-script.sh && /discovery-script.sh"
+    restart: unless-stopped
+    depends_on:
+      - samba
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=SMB Discovery"
+      - "bluelab.category=File Sharing"
+      - "bluelab.description=SMB network discovery helper"
+
+networks:
+  default:
+    name: ${BLUELAB_NETWORK:-bluelab-network}
+    external: true

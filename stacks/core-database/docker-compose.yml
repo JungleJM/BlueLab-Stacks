@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: bluelab-postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-bluelab}
+      - POSTGRES_USER=${POSTGRES_USER:-bluelab}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bluelab}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=PostgreSQL"
+      - "bluelab.category=Database"
+      - "bluelab.description=Primary database server"
+      - "bluelab.port=${POSTGRES_PORT:-5432}"
+      - "bluelab.subdomain=postgres"
+
+  redis:
+    image: redis:7-alpine
+    container_name: bluelab-redis
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=Redis"
+      - "bluelab.category=Database"
+      - "bluelab.description=Caching and session storage"
+      - "bluelab.port=${REDIS_PORT:-6379}"
+      - "bluelab.subdomain=redis"
+
+  db-backup:
+    image: postgres:15-alpine
+    container_name: bluelab-db-backup
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-bluelab}
+      - POSTGRES_USER=${POSTGRES_USER:-bluelab}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data:ro
+      - ${DATA_DIR}/backups:/backups
+      - ./backup-script.sh:/backup-script.sh
+    command: /bin/sh -c "chmod +x /backup-script.sh && crond -f"
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    labels:
+      - "bluelab.service=true"
+      - "bluelab.name=Database Backup"
+      - "bluelab.category=Database"
+      - "bluelab.description=Automated database backups"
+
+networks:
+  default:
+    name: ${BLUELAB_NETWORK:-bluelab-network}
+    external: true
