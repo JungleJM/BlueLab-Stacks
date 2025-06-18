@@ -1,6 +1,5 @@
 # Initial Project Goals
 
-
 ## Background
 Look at the github repo for Bluelab (https://github.com/JungleJM/BlueLab) specifically the latest in the first-boot branch, and the readme, and the docs folders. This will give you a sense of what we are trying to achieve. We are trying to do phase 2 and up in a separate repo while Phase 1 is being ironed out of bugs. 
 
@@ -23,12 +22,12 @@ There should be an initial installer, which asks for core info, such as
 -   A Wireguard Config - allows the user to simply download a wireguard config file from their VPN, so that if they don't have one already they can get it set up without having to put in annoying private and public keys. If they want a suggested free one, Suggest Proton VPN, and provide a link and maybe API integration, or download the wireguard config automatically.
 -   A "Steam Gaming" option that downloads Steam, maybe also an API integration so it auto-logs in. 
 -   A list of all the stacks below, with some info of what they have/do. It should note that the "core" stacks will be installed either way, but the others are optional to install as they'd like.
+-   SMB/CIFS-Utils - This should have a central SMB share that all users on tailscale can access, where the actual media, pictures etc are stored. That way, they can drop files in easily, copy movies to drives easily, etc. And if Jellyfin stops working for some reason they can use their local media player.
 
-Ideally this will be a slick interface based in somethign simple like Electron, but for now also fine to run in a bash/terminal interface so long as the authentication communication back to the terminal works once the website logins/permissions are done. 
+Ideally this installer will be a slick interface based in somethign simple like Electron, but for now also fine to run in a bash/terminal interface so long as the authentication communication back to the terminal works once the website logins/permissions are done. (high priority is installer, later priority is Electron version)
 
 ## SHould I distrobox this?
 I'm thinking for ease of installation I can make this all in a distrobox so that I won't have to worry about compatibiliity issues. I will also be able to easily un-install. Give me pros and cons for doign that vs installing on the main OS.
-
 
 ## Stacks
 The core of this product is auto-installing a set of stacks, whose apps/programs work together for a specific purpose. For instance, the 'media' stack should have jellyfin, sonarr, radarr, prowlarr, bazarr, qbittorrent. In general, we shoudl automate any installation functions as much as possible (for instance, the media stack's programs should all share API keys and not require the user to go through and set that up). 
@@ -38,10 +37,21 @@ There will be some "core" stacks that are essential for the product to work, and
 Core stacks:
 **Dockge** - The basic interface to see all the stacks and see if they're working. All other stacks should be isntalled such that they're viewable in dockge and can be seen on its interface.
 **Monitoring** - This is where we do update monitoring, Ansible cron jobs for any tasks, and where we host Homepage, the interface that will be the central hub for all the data, that is the one-stop shop to access all of our stuff
-**Media** - Jellyfin, QBittorrent, Sonarr, Radarr, Bazarr, Prowlarr, Filebot
-    - If selected, Also isntall the app Jellyfin media Player, and auto-connect to the server. Make it also put that in the dock if it's GNOME-based, and the bottom bar if KDE-based.
-    - If selected, place info about FileBot being a paid service but optional - only if you have lots of files you want to bring in, as it's likely in a naming format that Jellyfin won't be able to read
 
+Optional stacks:
+**Media** - Jellyfin, QBittorrent, Sonarr, Radarr, Bazarr, Prowlarr, Filebot
+    - Also install the app Jellyfin media Player, and auto-connect to the server. Make it also put that in the dock if it's GNOME-based, and the bottom bar if KDE-based.
+    -  place info about FileBot being a paid service but optional - only if you have lots of files you want to bring in, as it's likely in a naming format that Jellyfin won't be able to read, in the homepage (later priority)
+**Photos** - Either Immich alone, or Immich and Photoprism (which I call EPS, or Effortless Photo Stack)
+    - I've managed to get them to play nice with each other on my current PC, if you look at the docker compose files and immich files in my opt/stacks section it should illuminate everything. 
+    - Google Phots Takeout Helper (https://github.com/TheLastGimbus/GooglePhotosTakeoutHelper) - download, then have a link in Homepage where you can input a folder, and hit 'start' and it simply runs the commands and fixes the EXIFS data. (later priority)
+    - Ansible will alternate times for processing between Immich and Photoprism if user selects both. See my repo EPS-Ansible (https://github.com/cniinc/EPS-ansible)
+**Audio** - A podcast auto-downloader, Navidrome, Audiobookshelf
+    - No real music downloaders have impressed me. Maybe Spotizerr? But it requires complex API building which doesn't fit with the philosophy. Maybe Lidarr? BUt I don't find it useful when I've used it.
+**Bookshelf**
+    - To be filled out later - honestly not very impressive right now
+**Food** - Mealie
+**Office** - Cal, Super Productivity, or Nextcloud with some sort of Calendar and Tasks plugin
 
 ## Uninstaller 
 
