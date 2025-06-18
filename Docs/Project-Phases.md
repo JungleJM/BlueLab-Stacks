@@ -6,7 +6,7 @@ BlueLab Stacks development is organized into phases based on user value, technic
 
 ## Phase 1: Foundation & Core Infrastructure (HIGH PRIORITY)
 **Timeline**: 2-3 weeks  
-**Goal**: Establish reliable foundation with essential services
+**Goal**: Establish reliable foundation with essential services and file sharing
 
 ### Phase 1A: Environment Setup (Week 1)
 **Critical Path Items**:
@@ -21,22 +21,26 @@ BlueLab Stacks development is organized into phases based on user value, technic
   - Distribution detection (Fedora, Ubuntu, Debian, Silverblue)
   - Prerequisites checking (Docker, Distrobox availability)
   - Directory structure creation
+  - BlueLab vs non-BlueLab user detection
 
 - [ ] **Core Networking Stack**
   - Tailscale integration and setup
   - DNS configuration (AdGuard Home)
-  - Subdomain routing (bluelab.movies, bluelab.tv, etc.)
+  - Smart subdomain routing:
+    - BlueLab users: `bluelab.movies`, `bluelab.tv`, etc.
+    - Non-BlueLab users: `homelab.movies`, `homelab.tv`, etc.
   - Network conflict detection
 
 **Success Criteria**:
 - Installation script works on clean Ubuntu, Fedora, and Silverblue systems
 - Distrobox container creates successfully with proper volume mounts
-- Tailscale connects and provides custom DNS routing
+- Tailscale connects and provides appropriate DNS routing based on user type
 
 ### Phase 1B: Core Stacks (Week 2)
 **Essential Services**:
 - [ ] **Core Download Stack**
-  - qBittorrent with WebUI configuration
+  - Deluge (primary) with Labels plugin auto-loaded
+  - qBittorrent (secondary) with WebUI configuration
   - Shared download directory structure
   - API key generation and storage
 
@@ -46,17 +50,22 @@ BlueLab Stacks development is organized into phases based on user value, technic
   - Automated backup system
   - Health monitoring
 
+- [ ] **SMB Share Stack (CORE)**
+  - Samba file sharing with Tailscale integration
+  - Automatic media folder sharing
+  - Cross-platform compatibility
+  - User permission management
+
 - [ ] **Monitoring Stack (Basic)**
   - Homepage dashboard with manual configuration
   - Dockge for container management
   - Basic service status monitoring
-  - Log aggregation setup
 
 **Success Criteria**:
 - All core services start and remain healthy
-- Services can communicate with each other
+- SMB shares accessible from any device on network
+- Download clients properly configured with labels
 - Homepage displays basic system information
-- Dockge shows running containers
 
 ### Phase 1C: Service Integration (Week 3)
 **Integration Features**:
@@ -78,14 +87,14 @@ BlueLab Stacks development is organized into phases based on user value, technic
 **Success Criteria**:
 - Homepage automatically discovers and displays running services
 - Services are pre-configured to work together
+- SMB shares integrate with Tailscale for remote access
 - System can recover from service failures
-- Update system works without breaking configurations
 
 **Phase 1 Deliverables**:
 - Fully functional installation on any supported Linux distribution
-- Working core infrastructure that other stacks can build upon
+- Working core infrastructure with file sharing
 - Reliable service discovery and management system
-- Documentation for installation and basic usage
+- Remote file access through Tailscale
 
 ---
 
@@ -98,16 +107,16 @@ BlueLab Stacks development is organized into phases based on user value, technic
 - [ ] **Jellyfin Media Server**
   - Optimized configuration for various media types
   - Hardware transcoding setup (when available)
-  - User management and permissions
+  - Basic single-user setup (multi-user moved to later phase)
   - Mobile app connection setup
 
 - [ ] **Download Management**
-  - Integration with Core Download Stack
+  - Integration with Core Download Stack (Deluge primary)
   - Automatic organization with Filebot
   - Storage optimization and cleanup
 
 **Success Criteria**:
-- Jellyfin streams media reliably
+- Jellyfin streams media reliably to single user
 - Downloads are automatically organized
 - Mobile apps can connect and stream
 
@@ -116,13 +125,13 @@ BlueLab Stacks development is organized into phases based on user value, technic
 - [ ] **Sonarr (TV Management)**
   - Pre-configured quality profiles
   - Automatic series monitoring
-  - Integration with download client
+  - Integration with Deluge download client
   - Episode tracking and organization
 
 - [ ] **Radarr (Movie Management)**  
   - Pre-configured quality profiles
   - Automatic movie monitoring
-  - Integration with download client
+  - Integration with Deluge download client
   - Movie collection management
 
 - [ ] **Prowlarr (Indexer Management)**
@@ -130,22 +139,29 @@ BlueLab Stacks development is organized into phases based on user value, technic
   - Automatic propagation to Sonarr/Radarr
   - Search optimization
 
-**Success Criteria**:
-- TV shows and movies are automatically downloaded and organized
-- Quality preferences work correctly
-- All services communicate without manual configuration
-
-### Phase 2C: Advanced Media Features (Week 6)
-**Enhanced Features**:
-- [ ] **Jellyseerr (Request Management)**
-  - User-friendly request interface
-  - Integration with Sonarr/Radarr
-  - Approval workflows
+- [ ] **ARR Stack Auto-Configuration (CRITICAL)**
+  - All ARR services share APIs automatically
+  - Pre-configured quality profiles that work together
+  - Automatic service linking without manual setup
 
 - [ ] **Bazarr (Subtitle Management)**
   - Automatic subtitle downloading
   - Multi-language support
   - Integration with media servers
+
+**Success Criteria**:
+- TV shows and movies are automatically downloaded and organized
+- ARR stack works together seamlessly with shared APIs
+- Quality preferences work correctly across all services
+- All services communicate without manual configuration
+- Subtitles download automatically
+
+### Phase 2C: Media Enhancement (Week 6)
+**Enhanced Features**:
+- [ ] **Jellyseerr (Request Management)**
+  - User-friendly request interface
+  - Integration with Sonarr/Radarr
+  - Basic approval workflows
 
 - [ ] **Advanced Configuration**
   - Custom quality profiles
@@ -154,22 +170,69 @@ BlueLab Stacks development is organized into phases based on user value, technic
 
 **Success Criteria**:
 - Non-technical users can request content easily
-- Subtitles are automatically downloaded
 - System performance is optimized for media streaming
 
 **Phase 2 Deliverables**:
 - Complete Netflix-replacement experience
-- Fully automated content acquisition
+- Fully automated content acquisition with zero manual configuration
 - Mobile and desktop client integration
 - User-friendly request system
 
 ---
 
-## Phase 3: Extended Stacks (MEDIUM PRIORITY)
-**Timeline**: 3-4 weeks  
-**Goal**: Provide comprehensive homelab functionality
+## Phase 3: User Experience & Photos (HIGH PRIORITY)
+**Timeline**: 2 weeks  
+**Goal**: Polish user experience and provide photo management
 
-### Phase 3A: Audio & Books (Week 7-8)
+### Phase 3A: User Experience Polish (Week 7)
+**UX Improvements**:
+- [ ] **Electron-based Installer**
+  - Graphical installation interface
+  - Progress visualization
+  - Interactive stack selection
+
+- [ ] **Bookmark Generation**
+  - Automatic browser bookmark creation
+  - Smart domain URL generation (bluelab.* or homelab.*)
+  - Custom bookmark organization
+
+- [ ] **Mobile Optimization**
+  - Homepage mobile interface
+  - Service-specific mobile configurations
+  - Responsive design improvements
+
+**Success Criteria**:
+- Installation process is visually appealing and intuitive
+- Mobile experience matches desktop quality
+- All services easily accessible via generated bookmarks
+
+### Phase 3B: Photos Stack (Week 8)
+**Photos Management**:
+- [ ] **Immich Photo Management**
+  - Automatic photo backup from mobile devices
+  - Face recognition and tagging
+  - Album organization and sharing
+  - Integration with Core Database Stack
+  - Mobile app setup and configuration
+
+**Success Criteria**:
+- Complete Google Photos replacement functionality
+- Seamless mobile photo backup
+- Face recognition works accurately
+- Album sharing works across devices
+
+**Phase 3 Deliverables**:
+- Professional-grade installation experience
+- Complete mobile device integration
+- Full-featured photo management system
+
+---
+
+## Phase 4: Extended Stacks & Multi-User Features (NICE-TO-HAVE)
+**Timeline**: 3-4 weeks  
+**Goal**: Additional functionality and multi-user support
+
+### Phase 4A: Audio & Books (Week 9-10)
 **Audio Stack**:
 - [ ] **Navidrome Music Server**
   - Music library management
@@ -202,15 +265,8 @@ BlueLab Stacks development is organized into phases based on user value, technic
 - Automatic podcast and audiobook management
 - Multi-device synchronization
 
-### Phase 3B: Photos & Productivity (Week 9-10)
-**Photos Stack**:
-- [ ] **Immich Photo Management**
-  - Automatic photo backup from mobile devices
-  - Face recognition and tagging
-  - Album organization and sharing
-  - Integration with Core Database Stack
-
-**Productivity Stack**:
+### Phase 4B: Productivity Stack (Week 11)
+**Productivity Suite**:
 - [ ] **Nextcloud Installation**
   - File synchronization and sharing
   - Calendar and contacts management
@@ -223,22 +279,10 @@ BlueLab Stacks development is organized into phases based on user value, technic
   - Version control
 
 **Success Criteria**:
-- Complete Google Photos replacement
 - Full Google Workspace replacement functionality
-- Seamless mobile and desktop integration
+- Seamless desktop and mobile integration
 
-**Phase 3 Deliverables**:
-- Complete multimedia management solution
-- Professional productivity suite
-- Mobile app ecosystem integration
-
----
-
-## Phase 4: Advanced Features (NICE-TO-HAVE)
-**Timeline**: 2-3 weeks  
-**Goal**: Polish user experience and add convenience features
-
-### Phase 4A: Gaming & SMB Integration (Week 11)
+### Phase 4C: Gaming & Multi-User Features (Week 12)
 **Gaming Stack**:
 - [ ] **Steam Integration**
   - Detect existing Steam installation
@@ -246,19 +290,18 @@ BlueLab Stacks development is organized into phases based on user value, technic
   - Game library management
   - Integration with Bluefin gaming optimizations
 
-**SMB Share Stack**:
-- [ ] **Samba File Sharing**
-  - Cross-platform file access
-  - Tailscale integration for remote access
-  - Automatic media folder sharing
-  - User permission management
+**Multi-User Features**:
+- [ ] **Jellyfin Multi-User Management**
+  - User account provisioning
+  - Individual user permissions
+  - Family sharing controls
+  - Parental controls
 
 **Success Criteria**:
 - Gaming setup works seamlessly
-- File sharing accessible from all devices
-- Remote file access through Tailscale
+- Multiple users can access media with appropriate permissions
 
-### Phase 4B: Advanced Monitoring (Week 12)
+### Phase 4D: Advanced Monitoring (Week 13)
 **Enhanced Monitoring**:
 - [ ] **Grafana Dashboards**
   - System performance metrics
@@ -281,59 +324,11 @@ BlueLab Stacks development is organized into phases based on user value, technic
 - Proactive problem detection
 - Performance optimization insights
 
-### Phase 4C: User Experience Polish (Week 13)
-**UX Improvements**:
-- [ ] **Electron-based Installer**
-  - Graphical installation interface
-  - Progress visualization
-  - Interactive stack selection
-
-- [ ] **Bookmark Generation**
-  - Automatic browser bookmark creation
-  - Tailscale URL generation
-  - Custom bookmark organization
-
-- [ ] **Mobile Optimization**
-  - Homepage mobile interface
-  - Service-specific mobile configurations
-  - Push notification setup
-
-**Success Criteria**:
-- Installation process is visually appealing
-- Mobile experience matches desktop quality
-- All services easily accessible from any device
-
 **Phase 4 Deliverables**:
-- Professional-grade installation experience
-- Complete mobile device integration
+- Complete multimedia management solution
+- Professional productivity suite
+- Multi-user capable system
 - Advanced monitoring and alerting
-
----
-
-## Phase 5: Enterprise Features (FUTURE/OPTIONAL)
-**Timeline**: 2-4 weeks  
-**Goal**: Advanced features for power users
-
-### Advanced Features (If Time Permits):
-- [ ] **Multi-User Management**
-  - User account provisioning
-  - Service-specific permissions
-  - Family sharing controls
-
-- [ ] **Backup Integration**
-  - Cloud backup options (S3, Google Drive)
-  - Automated data backup schedules
-  - Disaster recovery procedures
-
-- [ ] **Advanced Networking**
-  - VPN server integration
-  - Custom domain support
-  - SSL certificate management
-
-- [ ] **Plugin System**
-  - Custom stack definitions
-  - Community stack repository
-  - Extension marketplace
 
 ---
 
@@ -372,23 +367,22 @@ BlueLab Stacks development is organized into phases based on user value, technic
 - Content request system has <24 hour fulfillment
 
 ### Phase 3 Success Metrics:
+- Installation process requires zero technical knowledge
+- All services accessible via generated bookmarks
 - Photo backup matches Google Photos experience
-- Productivity suite matches Office 365 functionality
-- Audio quality matches Spotify experience
-- All mobile apps maintain synchronization
+- Mobile experience matches desktop quality
 
 ### Phase 4 Success Metrics:
-- Installation process requires zero technical knowledge
-- All services accessible via simple bookmarks
-- System maintains itself without user intervention
+- Audio quality matches Spotify experience
+- Productivity suite matches Office 365 functionality
+- Multi-user management works seamlessly
 - Performance monitoring prevents 90% of issues
 
 ## Resource Allocation
 
 ### Development Priorities:
-1. **High Priority** (Phases 1-2): 60% of development time
-2. **Medium Priority** (Phase 3): 30% of development time  
-3. **Nice-to-Have** (Phases 4-5): 10% of development time
+1. **High Priority** (Phases 1-3): 70% of development time
+2. **Nice-to-Have** (Phase 4): 30% of development time
 
 ### Focus Areas:
 - **User Experience**: 40% of effort
@@ -396,4 +390,4 @@ BlueLab Stacks development is organized into phases based on user value, technic
 - **Features**: 20% of effort
 - **Performance**: 10% of effort
 
-This phased approach ensures that BlueLab Stacks delivers maximum value to users while maintaining high quality and reliability standards throughout the development process.
+This revised phased approach prioritizes user experience and core functionality while removing scope creep. The focus is on delivering a polished, easy-to-use system that provides immediate value to users, with advanced features available for those who need them.

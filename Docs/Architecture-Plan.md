@@ -93,21 +93,28 @@ BlueLab Stacks is a containerized homelab management system designed to provide 
 
 **Access Pattern Implementation**:
 ```yaml
-# Custom DNS entries for easy access
+# Smart DNS entries based on user type
+# BlueLab users:
 bluelab.local → 192.168.1.100 (Local IP)
 bluelab.movies → 192.168.1.100:7878 (Radarr)
 bluelab.tv → 192.168.1.100:8989 (Sonarr)
 bluelab.music → 192.168.1.100:4533 (Navidrome)
 bluelab.photos → 192.168.1.100:2283 (Immich)
-bluelab.calendar → 192.168.1.100:8080/apps/calendar (Nextcloud)
+
+# Non-BlueLab users:
+homelab.local → 192.168.1.100 (Local IP)
+homelab.movies → 192.168.1.100:7878 (Radarr)
+homelab.tv → 192.168.1.100:8989 (Sonarr)
+homelab.music → 192.168.1.100:4533 (Navidrome)
+homelab.photos → 192.168.1.100:2283 (Immich)
 ```
 
 #### 2. Core Download Stack
 **Purpose**: Shared download clients for multiple stacks
 
 **Services**:
-- **qBittorrent**: Primary torrent client with WebUI
-- **Transmission**: Backup/alternative torrent client
+- **Deluge**: Primary torrent client with WebUI and Labels plugin auto-loaded
+- **qBittorrent**: Secondary/backup torrent client
 - **yt-dlp**: YouTube and web content downloader
 - **Filebot**: File organization and naming
 
@@ -121,53 +128,63 @@ bluelab.calendar → 192.168.1.100:8080/apps/calendar (Nextcloud)
 - **Redis**: Caching and session storage
 - **Database backup automation**
 
-#### 4. Monitoring Stack
+#### 4. SMB Share Stack (CORE)
+**Purpose**: Network file sharing with Tailscale integration
+
+**Services**:
+- **Samba**: SMB/CIFS file sharing server
+- **Tailscale Integration**: Remote access to shares
+- **Automatic Media Sharing**: Pre-configured shares for media folders
+- **Cross-platform Compatibility**: Windows, Mac, Linux, mobile access
+
+#### 5. Monitoring Stack
 **Purpose**: System monitoring, management interface, and dashboard
 
 **Services**:
 - **Homepage**: Main dashboard with service discovery
 - **Dockge**: Visual Docker Compose management
-- **Uptime Kuma**: Service availability monitoring
-- **Grafana**: System metrics visualization
-- **Prometheus**: Metrics collection
+- **Basic Health Monitoring**: Essential service status checking
 - **Watchtower**: Automated container updates
+
+**Advanced Monitoring** (Phase 4): Grafana, Prometheus, Uptime Kuma
 
 ### Optional Stacks
 
-#### Media Stack
+#### Media Stack (Phase 2)
 **Components**: Jellyfin, Sonarr, Radarr, Bazarr, Jellyseerr
-**Dependencies**: Core Download, Core Database
-**Auto-Configuration**: All services pre-linked with API keys
+**Dependencies**: Core Download (Deluge primary), Core Database
+**Auto-Configuration**: All ARR services pre-linked with shared APIs (CRITICAL)
+**Priority**: High - Complete Netflix replacement
 
-#### Audio Stack
-**Components**: Navidrome, Lidarr, Podgrab
-**Dependencies**: Core Download
-**Integration**: Shares download client with Media stack
-
-#### Photos Stack
+#### Photos Stack (Phase 3B)
 **Components**: Immich (app, ML, database)
 **Dependencies**: Core Database (PostgreSQL, Redis)
 **Features**: Mobile sync, face recognition, automatic organization
+**Priority**: High - Complete Google Photos replacement
 
-#### Books Stack
+#### Audio Stack (Phase 4A)
+**Components**: Navidrome, Lidarr, Podgrab
+**Dependencies**: Core Download
+**Integration**: Shares download client with Media stack
+**Priority**: Nice-to-have
+
+#### Books Stack (Phase 4A)
 **Components**: Calibre-Web, Readarr
 **Dependencies**: Core Download
 **Integration**: Automatic ebook organization and management
+**Priority**: Nice-to-have
 
-#### Productivity Stack
+#### Productivity Stack (Phase 4B)
 **Components**: Nextcloud (files, calendar, tasks, contacts)
 **Dependencies**: Core Database, Core Networking
 **Features**: WebDAV, CalDAV, CardDAV integration
+**Priority**: Nice-to-have
 
-#### Gaming Stack
+#### Gaming Stack (Phase 4C)
 **Components**: Steam (containerized if not present)
 **Special Handling**: Installs natively if available, containerized if not
 **Purpose**: Ensures easy removal with rest of BlueLab system
-
-#### SMB Share Stack
-**Components**: Samba server with Tailscale integration
-**Purpose**: Easy file access from any device on network
-**Integration**: Serves media files for direct access
+**Priority**: Nice-to-have
 
 ## Installation Architecture
 
@@ -255,15 +272,22 @@ configure_service_links() {
 
 #### Access Patterns
 ```bash
-# DNS Configuration in AdGuard Home
+# DNS Configuration in AdGuard Home - Smart Domain Selection
+# BlueLab users:
 bluelab.local         → 100.64.x.x (Tailscale IP)
 *.bluelab.local       → 100.64.x.x (All subdomains)
-
-# Service-specific subdomains
 movies.bluelab.local  → 100.64.x.x:7878
 tv.bluelab.local      → 100.64.x.x:8989
 music.bluelab.local   → 100.64.x.x:4533
 photos.bluelab.local  → 100.64.x.x:2283
+
+# Non-BlueLab users:
+homelab.local         → 100.64.x.x (Tailscale IP)
+*.homelab.local       → 100.64.x.x (All subdomains)
+movies.homelab.local  → 100.64.x.x:7878
+tv.homelab.local      → 100.64.x.x:8989
+music.homelab.local   → 100.64.x.x:4533
+photos.homelab.local  → 100.64.x.x:2283
 ```
 
 #### Tailscale Setup Automation
@@ -277,9 +301,18 @@ setup_tailscale() {
     echo "Please visit this URL to authorize Tailscale:"
     distrobox enter bluelab -- tailscale up --authkey=<interactive>
     
-    # Get Tailscale IP for configuration
+    # Get Tailscale IP and detect user type for DNS setup
     TAILSCALE_IP=$(distrobox enter bluelab -- tailscale ip -4)
+    
+    # Detect if BlueLab user (check for unique BlueLab identifier file)
+    if [ -f /etc/bluelab-release ]; then
+        DOMAIN_PREFIX="bluelab"
+    else
+        DOMAIN_PREFIX="homelab"
+    fi
+    
     echo "TAILSCALE_IP=$TAILSCALE_IP" >> /var/lib/bluelab/config/global.env
+    echo "DOMAIN_PREFIX=$DOMAIN_PREFIX" >> /var/lib/bluelab/config/global.env
 }
 ```
 

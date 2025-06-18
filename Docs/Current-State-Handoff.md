@@ -54,24 +54,31 @@ mkdir -p templates/{docker-compose,service-configs}
 - [ ] `templates/docker-compose/base.yml` - Base compose template
 
 #### 4. Core Stack Implementations
-- [ ] `stacks/core-networking/docker-compose.yml` - Tailscale + AdGuard Home
-- [ ] `stacks/core-download/docker-compose.yml` - qBittorrent + utilities
+- [ ] `stacks/core-networking/docker-compose.yml` - Tailscale + AdGuard Home (smart domain routing)
+- [ ] `stacks/core-download/docker-compose.yml` - Deluge (primary) + qBittorrent + utilities
 - [ ] `stacks/core-database/docker-compose.yml` - PostgreSQL + Redis
+- [ ] `stacks/smb-share/docker-compose.yml` - Samba with Tailscale integration
 - [ ] `stacks/monitoring/docker-compose.yml` - Homepage + Dockge
 
 ## Technical Decisions Made
 
 ### Architecture Decisions
 1. **Distrobox Strategy**: Ubuntu 22.04 LTS container for maximum compatibility
-2. **DNS Solution**: AdGuard Home for custom domain routing (bluelab.movies, etc.)
-3. **Shared Services**: Core stacks handle shared dependencies (databases, download clients)
-4. **Service Discovery**: Docker labels for automatic Homepage configuration
-5. **Storage**: `/var/lib/bluelab/` for all persistent data
+2. **Smart DNS Solution**: AdGuard Home with BlueLab user detection
+   - BlueLab users: `bluelab.movies`, `bluelab.tv`, etc.
+   - Non-BlueLab users: `homelab.movies`, `homelab.tv`, etc.
+3. **Download Client Priority**: Deluge (primary) with Labels plugin, qBittorrent (secondary)
+4. **SMB Integration**: Core stack for Phase 1 (not optional)
+5. **Shared Services**: Core stacks handle shared dependencies (databases, download clients)
+6. **Service Discovery**: Docker labels for automatic Homepage configuration
+7. **Storage**: `/var/lib/bluelab/` for all persistent data
 
 ### Network Architecture
 - **Primary Access**: Tailscale for secure remote access
 - **Local Access**: Standard IP addresses with port forwarding
-- **DNS Routing**: Custom subdomains (bluelab.movies → radarr, etc.)
+- **Smart DNS Routing**: Domain prefix based on user type
+  - BlueLab users: `bluelab.movies` → radarr, `bluelab.tv` → sonarr
+  - Non-BlueLab users: `homelab.movies` → radarr, `homelab.tv` → sonarr
 - **Port Management**: Automatic conflict detection and resolution
 
 ### Security Model
@@ -86,32 +93,36 @@ mkdir -p templates/{docker-compose,service-configs}
 **A**: Distrobox prioritized for compatibility and easy removal, with native fallback.
 
 ### Q: Electron installer or bash installer first?
-**A**: Bash installer for Phase 1, Electron interface in Phase 4.
+**A**: Bash installer for Phase 1, Electron interface in Phase 3A (moved up for UX priority).
 
 ### Q: How to handle shared dependencies between stacks?
-**A**: Core stacks (core-download, core-database) handle shared services automatically.
+**A**: Core stacks (core-download, core-database, smb-share) handle shared services automatically.
 
 ### Q: How deep should Tailscale integration be?
-**A**: Primarily for access, with custom DNS for easy navigation (bluelab.movies, etc.).
+**A**: Primarily for access, with smart DNS routing based on user type (bluelab.* vs homelab.*).
 
 ### Q: Should Gaming stack follow standard pattern?
-**A**: No, it's a special case - installs Steam natively if available, containerized if not.
+**A**: No, it's a special case - installs Steam natively if available, containerized if not (Phase 4C).
+
+### Q: What about SMB sharing?
+**A**: Moved to Phase 1 as core infrastructure - essential for file access across devices.
 
 ## Implementation Priorities
 
 ### Phase 1 (Weeks 1-3) - Foundation
-**Critical Path**: Distrobox setup → Core stacks → Service discovery
-**Priority**: Get basic system working with monitoring and networking
+**Critical Path**: Distrobox setup → Core stacks (including SMB) → Service discovery
+**Priority**: Get basic system working with monitoring, networking, and file sharing
 
 ### Phase 2 (Weeks 4-6) - Media Stack  
-**Critical Path**: Jellyfin → Sonarr/Radarr → Automation
-**Priority**: Deliver primary user value (Netflix replacement)
+**Critical Path**: Jellyfin → Sonarr/Radarr → ARR stack auto-configuration (CRITICAL)
+**Priority**: Deliver primary user value (Netflix replacement) with zero manual configuration
 
-### Phase 3 (Weeks 7-10) - Extended Functionality
-**Priority**: Audio, Photos, Books, and Productivity stacks
+### Phase 3 (Weeks 7-8) - UX & Photos
+**Critical Path**: Electron installer → Mobile optimization → Immich photos
+**Priority**: Polish user experience and deliver Google Photos replacement
 
-### Phase 4 (Weeks 11-13) - Polish and UX
-**Priority**: Electron installer, mobile optimization, advanced monitoring
+### Phase 4 (Weeks 9-13) - Extended Functionality
+**Priority**: Audio, Books, Productivity, Gaming, Multi-user, Advanced monitoring
 
 ## Risk Mitigation Strategies
 
@@ -153,10 +164,13 @@ git commit -m "Initial repository structure and documentation"
 
 ### 4. First Stack Implementation (Day 6-10)
 - Implement Core Networking stack (Tailscale + AdGuard Home)
+- Add smart domain detection (bluelab.* vs homelab.*)
 - Test DNS routing and subdomain access
 - Verify Tailscale integration works correctly
 
-### 5. Basic Monitoring (Day 11-15)
+### 5. Core Infrastructure (Day 11-15)
+- Implement Core Download stack (Deluge primary with Labels plugin)
+- Add SMB Share stack with Tailscale integration
 - Implement basic Homepage dashboard
 - Add Dockge for container management
 - Test service discovery functionality
@@ -166,20 +180,24 @@ git commit -m "Initial repository structure and documentation"
 ### Functional Requirements
 - [ ] Installation script works on Ubuntu, Fedora, and Silverblue
 - [ ] Distrobox container creates successfully with proper volume mounts
-- [ ] Tailscale connects and provides subdomain routing
+- [ ] Tailscale connects and provides smart domain routing (bluelab.* or homelab.*)
+- [ ] SMB shares accessible from any device on network
+- [ ] Deluge configured with Labels plugin auto-loaded
 - [ ] Homepage displays running services automatically
 - [ ] Dockge provides visual container management
 - [ ] All core services start and remain healthy
 
 ### Performance Requirements
 - [ ] Installation completes in under 30 minutes
-- [ ] Core services use less than 2GB RAM
+- [ ] Core services (including SMB) use less than 2GB RAM
 - [ ] Service startup time under 5 minutes
 - [ ] Homepage loads in under 3 seconds
+- [ ] SMB file transfers perform adequately over network
 
 ### User Experience Requirements
 - [ ] Installation requires minimal user input
-- [ ] All services accessible via simple URLs
+- [ ] All services accessible via smart domain URLs (bluelab.* or homelab.*)
+- [ ] SMB shares easily accessible from any device
 - [ ] Error messages are clear and actionable
 - [ ] Uninstallation leaves system in original state
 
