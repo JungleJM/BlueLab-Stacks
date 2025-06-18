@@ -250,10 +250,10 @@ BlueLab Stacks development is organized into phases based on user value, technic
   - Mobile synchronization
 
 **Books Stack**:
-- [ ] **Calibre-Web Ebook Server**
-  - Digital library management
-  - Multiple format support
-  - Reading progress synchronization
+- [ ] **Kavita Digital Library**
+  - Multi-format digital library management (books, manga, comics)
+  - Cross-platform reading server
+  - Progress tracking and synchronization
 
 - [ ] **Readarr Book Management**
   - Automatic book acquisition

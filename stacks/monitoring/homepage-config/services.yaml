@@ -63,6 +63,24 @@
           username: admin
           password: adminadmin
 
+- Books:
+    - Kavita:
+        icon: kavita.png
+        href: http://localhost:${KAVITA_PORT:-5000}
+        description: Digital library for books, manga, and comics
+        widget:
+          type: kavita
+          url: http://localhost:${KAVITA_PORT:-5000}
+
+    - Readarr:
+        icon: readarr.png
+        href: http://localhost:${READARR_PORT:-8787}
+        description: Book collection manager
+        widget:
+          type: readarr
+          url: http://localhost:${READARR_PORT:-8787}
+          key: ${READARR_API_KEY}
+
 - System:
     - File Sharing:
         icon: folder.png

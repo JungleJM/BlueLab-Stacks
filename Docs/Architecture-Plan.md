@@ -169,9 +169,9 @@ homelab.photos → 192.168.1.100:2283 (Immich)
 **Priority**: Nice-to-have
 
 #### Books Stack (Phase 4A)
-**Components**: Calibre-Web, Readarr
+**Components**: Kavita, Readarr
 **Dependencies**: Core Download
-**Integration**: Automatic ebook organization and management
+**Integration**: Automatic ebook organization and management with multi-format support
 **Priority**: Nice-to-have
 
 #### Productivity Stack (Phase 4B)
@@ -356,7 +356,9 @@ find_available_port() {
 │   └── downloads/       # qBittorrent downloads
 ├── music/               # Shared by Lidarr, Navidrome
 ├── photos/              # Immich storage
-├── books/               # Calibre library
+├── books/               # Kavita digital library
+├── manga/               # Kavita manga collection  
+├── comics/              # Kavita comics collection
 ├── documents/           # Nextcloud files
 └── backups/             # Application backups
 ```
