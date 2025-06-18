@@ -477,9 +477,10 @@ show_access_info() {
     echo "  Data Directory: $DATA_DIR"
     echo ""
     echo "Next Steps:"
-    echo "1. Configure Tailscale for remote access"
-    echo "2. Set up your ${DOMAIN_PREFIX}.* domains in AdGuard Home"
-    echo "3. Ready for Phase 2 (Media Stack) deployment"
+    echo "1. Configure Tailscale for remote access: ./scripts/setup-tailscale.sh"
+    echo "2. (Optional) Set up VPN with split tunneling: ./scripts/setup-vpn.sh"
+    echo "3. Set up your ${DOMAIN_PREFIX}.* domains in AdGuard Home"
+    echo "4. Ready for Phase 2 (Media Stack) deployment"
     echo ""
 }
 

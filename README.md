@@ -29,6 +29,7 @@ chmod +x install.sh
 - **Distrobox Container**: Ubuntu 22.04 LTS environment for maximum compatibility
 - **Docker & Docker Compose**: Container runtime and orchestration
 - **Network Stack**: Tailscale VPN + AdGuard Home DNS with smart domain routing
+- **Optional VPN**: WireGuard VPN with split tunneling support
 
 ### File Sharing
 - **SMB/CIFS Server**: Cross-platform file sharing accessible from any device
@@ -75,6 +76,57 @@ After installation, access your services at:
 - **DNS Server**: http://localhost:3001
 - **Downloads**: http://localhost:8112 (Deluge), http://localhost:8080 (qBittorrent)
 - **File Shares**: `\\YOUR_IP\bluelab` (Windows) or `smb://YOUR_IP/bluelab` (Mac/Linux)
+
+## VPN Setup (Optional)
+
+BlueLab Stacks supports WireGuard VPN with split tunneling, allowing you to route your internet traffic through a VPN while keeping Tailscale and local network traffic direct.
+
+### Quick VPN Setup
+
+```bash
+# Run the VPN setup script
+./scripts/setup-vpn.sh
+```
+
+### VPN Options
+
+#### Free VPN: ProtonVPN
+- **No data limits**
+- **Strong privacy protection** (Switzerland-based)
+- **3 server locations** (Japan, Netherlands, US)
+- **Setup**: [account.protonvpn.com/signup](https://account.protonvpn.com/signup)
+
+#### Paid VPN: AirVPN  
+- **Excellent privacy policies** (Italy-based, no logs)
+- **200+ servers worldwide**
+- **Port forwarding support**
+- **Starting at €4.50/month**
+- **Setup**: [airvpn.org](https://airvpn.org)
+
+### How Split Tunneling Works
+
+```
+Internet Traffic → VPN Server → Internet
+Tailscale Traffic → Direct Connection
+Local Network → Direct Connection
+Your Services → Accessible via Tailscale IP
+```
+
+### VPN Management Commands
+
+```bash
+# Check VPN status
+sudo wg show
+
+# Start VPN
+sudo wg-quick up wg0
+
+# Stop VPN  
+sudo wg-quick down wg0
+
+# Check both VPN and Tailscale status
+./scripts/setup-vpn.sh  # Choose option 5
+```
 
 ## System Requirements
 
