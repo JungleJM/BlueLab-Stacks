@@ -328,7 +328,11 @@ TZ=$timezone
 EOF
 
     # Create Docker network
-    distrobox enter "$CONTAINER_NAME" -- docker network create bluelab-network || true
+    if command -v docker >/dev/null 2>&1; then
+        docker network create bluelab-network || true
+    else
+        distrobox enter "$CONTAINER_NAME" -- docker network create bluelab-network || true
+    fi
     
     log_success "Environment configuration created"
 }
@@ -406,10 +410,17 @@ verify_stack_health() {
     log "Verifying $stack_name stack health..."
     
     local containers
-    containers=$(distrobox enter "$CONTAINER_NAME" -- bash -c "
-        cd $config_dir
-        docker compose ps -q
-    ")
+    if command -v docker >/dev/null 2>&1; then
+        # Use host Docker
+        cd "$config_dir"
+        containers=$(docker compose ps -q)
+    else
+        # Use Docker in container
+        containers=$(distrobox enter "$CONTAINER_NAME" -- bash -c "
+            cd $config_dir
+            docker compose ps -q
+        ")
+    fi
     
     local healthy_count=0
     local total_count=0
@@ -417,7 +428,11 @@ verify_stack_health() {
     for container in $containers; do
         ((total_count++))
         local status
-        status=$(distrobox enter "$CONTAINER_NAME" -- docker inspect "$container" --format='{{.State.Status}}')
+        if command -v docker >/dev/null 2>&1; then
+            status=$(docker inspect "$container" --format='{{.State.Status}}')
+        else
+            status=$(distrobox enter "$CONTAINER_NAME" -- docker inspect "$container" --format='{{.State.Status}}')
+        fi
         if [[ "$status" == "running" ]]; then
             ((healthy_count++))
         fi

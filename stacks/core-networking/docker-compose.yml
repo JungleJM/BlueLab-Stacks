@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   tailscale:
@@ -55,4 +54,4 @@ services:
 networks:
   default:
     name: ${BLUELAB_NETWORK:-bluelab-network}
-    driver: bridge
+    external: true
