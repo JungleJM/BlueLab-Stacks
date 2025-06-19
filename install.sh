@@ -211,31 +211,51 @@ create_bluelab_container() {
     log_success "Container created successfully"
 }
 
-# Install Docker inside the container
+# Install Docker or configure host Docker access
 setup_docker_in_container() {
-    log "Installing Docker in container..."
+    log "Setting up Docker access..."
     
-    distrobox enter "$CONTAINER_NAME" -- bash -c "
-        export DEBIAN_FRONTEND=noninteractive
-        sudo apt-get update
-        sudo apt-get install -y ca-certificates curl gnupg lsb-release
+    # Check if Docker is available on host
+    if command -v docker >/dev/null 2>&1; then
+        log "Docker found on host system, configuring access..."
         
-        # Add Docker's official GPG key
-        sudo mkdir -p /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        # Add user to docker group on host if needed
+        if ! groups "$USER" | grep -q docker; then
+            log "Adding user to docker group..."
+            sudo usermod -aG docker "$USER"
+            log_warning "Please log out and back in for Docker group changes to take effect"
+        fi
         
-        # Add Docker repository
-        echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        # Create network on host
+        docker network create bluelab-network 2>/dev/null || true
         
-        # Install Docker
-        sudo apt-get update
-        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        log_success "Using host Docker system"
+    else
+        log "Docker not found on host, installing in container..."
         
-        # Add user to docker group
-        sudo usermod -aG docker \$USER
-    "
-    
-    log_success "Docker installed in container"
+        distrobox enter "$CONTAINER_NAME" -- bash -c "
+            export DEBIAN_FRONTEND=noninteractive
+            sudo apt-get update
+            sudo apt-get install -y ca-certificates curl gnupg lsb-release
+            
+            # Add Docker's official GPG key
+            sudo mkdir -p /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            
+            # Add Docker repository
+            echo \"deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            
+            # Install Docker
+            sudo apt-get update
+            sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+            
+            # Add user to docker group
+            sudo groupadd docker 2>/dev/null || true
+            sudo usermod -aG docker \$USER
+        "
+        
+        log_success "Docker installed in container"
+    fi
 }
 
 # Setup environment configuration
@@ -355,12 +375,21 @@ deploy_stack() {
     cp -r "$stack_dir"/* "$config_dir/"
     
     # Deploy stack with environment variables
-    distrobox enter "$CONTAINER_NAME" -- bash -c "
-        cd $config_dir
-        export \$(cat /var/lib/bluelab/config/global.env | xargs)
-        export \$(cat /var/lib/bluelab/config/docker.env | xargs)
+    if command -v docker >/dev/null 2>&1; then
+        # Use host Docker
+        cd "$config_dir"
+        export $(grep -v '^#' "$DATA_DIR/config/global.env" | xargs)
+        export $(grep -v '^#' "$DATA_DIR/config/docker.env" | xargs)
         docker compose up -d
-    "
+    else
+        # Use Docker in container
+        distrobox enter "$CONTAINER_NAME" -- bash -c "
+            cd $config_dir
+            export \$(grep -v '^#' /var/lib/bluelab/config/global.env | xargs)
+            export \$(grep -v '^#' /var/lib/bluelab/config/docker.env | xargs)
+            docker compose up -d
+        "
+    fi
     
     # Verify deployment
     sleep 5
