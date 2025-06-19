@@ -116,7 +116,6 @@ tls:
   private_key: ""
   certificate_path: ""
   private_key_path: ""
-  strict_sni_check: false
 
 querylog:
   enabled: true

@@ -39,7 +39,6 @@ services:
     volumes:
       - ./adguard-work:/opt/adguardhome/work
       - ./adguard-conf:/opt/adguardhome/conf
-      - ./config/adguard.yaml:/opt/adguardhome/conf/AdGuardHome.yaml
     restart: unless-stopped
     depends_on:
       - tailscale
