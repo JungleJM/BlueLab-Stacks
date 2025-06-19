@@ -31,8 +31,8 @@ services:
     hostname: ${DOMAIN_PREFIX:-homelab}-dns
     ports:
       - "${ADGUARD_PORT:-3001}:3000"
-      - "53:53/tcp"
-      - "53:53/udp"
+      - "${ADGUARD_DNS_PORT:-5353}:53/tcp"
+      - "${ADGUARD_DNS_PORT:-5353}:53/udp"
       - "853:853/tcp"
     environment:
       - TZ=${TZ:-UTC}

@@ -288,6 +288,7 @@ HOST_IP=$host_ip
 HOMEPAGE_PORT=3000
 DOCKGE_PORT=5001
 ADGUARD_PORT=3001
+ADGUARD_DNS_PORT=5353
 DELUGE_PORT=8112
 QBITTORRENT_PORT=8080
 POSTGRES_PORT=5432
@@ -519,6 +520,7 @@ show_access_info() {
     echo ""
     echo "🌐 Network Services:"
     echo "  AdGuard Home (DNS): http://localhost:3001"
+    echo "  AdGuard DNS Port: 5353 (configure your router/devices to use $(hostname -I | awk '{print $1}'):5353)"
     echo "  Domain prefix: ${DOMAIN_PREFIX:-homelab}"
     echo ""
     echo "💾 Download Clients:"
@@ -536,9 +538,10 @@ show_access_info() {
     echo ""
     echo "Next Steps:"
     echo "1. Configure Tailscale for remote access: ./scripts/setup-tailscale.sh"
-    echo "2. (Optional) Set up VPN with split tunneling: ./scripts/setup-vpn.sh"
-    echo "3. Set up your ${DOMAIN_PREFIX}.* domains in AdGuard Home"
-    echo "4. Ready for Phase 2 (Media Stack) deployment"
+    echo "2. Configure DNS: Set your router or devices to use $(hostname -I | awk '{print $1}'):5353 as DNS"
+    echo "3. Set up your ${DOMAIN_PREFIX}.* domains in AdGuard Home (http://localhost:3001)"
+    echo "4. (Optional) Set up VPN with split tunneling: ./scripts/setup-vpn.sh"
+    echo "5. Ready for Phase 2 (Media Stack) deployment"
     echo ""
 }
 
