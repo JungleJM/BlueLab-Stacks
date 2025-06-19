@@ -68,6 +68,10 @@ main() {
     configure_service_discovery
     setup_health_monitoring
     
+    # Phase 1D: Auto-Configuration
+    log "Phase 1D: Auto-Configuration"
+    auto_configure_services
+    
     log_success "BlueLab Stacks Phase 1 installation completed!"
     show_access_info
 }
@@ -412,9 +416,29 @@ verify_stack_health() {
     
     local containers
     if command -v docker >/dev/null 2>&1; then
-        # Use host Docker
-        cd "$config_dir"
-        containers=$(docker compose ps -q)
+        # Use host Docker - fallback to finding containers by bluelab prefix
+        containers=$(docker compose -f "$config_dir/docker-compose.yml" ps -q 2>/dev/null)
+        if [[ -z "$containers" ]]; then
+            # Fallback: find by container name pattern for this stack
+            case "$stack_name" in
+                "core-networking")
+                    containers=$(docker ps -q --filter "name=bluelab-tailscale" --filter "name=bluelab-adguard")
+                    ;;
+                "core-database")
+                    containers=$(docker ps -q --filter "name=bluelab-postgres" --filter "name=bluelab-redis")
+                    ;;
+                "core-download")
+                    containers=$(docker ps -q --filter "name=bluelab-deluge" --filter "name=bluelab-qbittorrent")
+                    ;;
+                "smb-share")
+                    containers=$(docker ps -q --filter "name=bluelab-samba")
+                    ;;
+                "monitoring")
+                    containers=$(docker ps -q --filter "name=bluelab-homepage" --filter "name=bluelab-dockge")
+                    ;;
+            esac
+        fi
+# echo "DEBUG: Found containers: '$containers'" >&2
     else
         # Use Docker in container
         containers=$(distrobox enter "$CONTAINER_NAME" -- bash -c "
@@ -507,6 +531,22 @@ EOF
     log_success "Health monitoring setup completed"
 }
 
+# Auto-configure all services with credentials and integrations
+auto_configure_services() {
+    log "Running comprehensive service auto-configuration..."
+    
+    # Make all configuration scripts executable
+    chmod +x "$PROJECT_DIR/scripts"/*.sh
+    
+    # Run the master configuration script
+    if [[ -f "$PROJECT_DIR/scripts/configure-all-services.sh" ]]; then
+        "$PROJECT_DIR/scripts/configure-all-services.sh"
+        log_success "Service auto-configuration completed"
+    else
+        log_warning "Service configuration script not found, services may require manual setup"
+    fi
+}
+
 # Show access information
 show_access_info() {
     echo ""
@@ -523,18 +563,25 @@ show_access_info() {
     echo "  AdGuard DNS Port: 5353 (configure your router/devices to use $(hostname -I | awk '{print $1}'):5353)"
     echo "  Domain prefix: ${DOMAIN_PREFIX:-homelab}"
     echo ""
-    echo "💾 Download Clients:"
-    echo "  Deluge (Primary): http://localhost:8112"
-    echo "  qBittorrent (Secondary): http://localhost:8080"
+    echo "💾 Download Clients (Auto-Configured):"
+    echo "  Deluge (Primary): http://localhost:8112 (Password: bluelab123)"
+    echo "  qBittorrent (Secondary): http://localhost:8080 (admin/bluelab123)"
     echo ""
     echo "📁 File Sharing:"
-    echo "  SMB Shares available on network"
-    echo "  Access via: \\\\$(hostname -I | awk '{print $1}')\\bluelab"
+    echo "  SMB Shares: \\\\$(hostname -I | awk '{print $1}')\\bluelab (bluelab/bluelab123)"
     echo ""
     echo "🔧 Management:"
     echo "  Container: distrobox enter $CONTAINER_NAME"
     echo "  Health Check: $DATA_DIR/scripts/health-check.sh"
+    echo "  Service Summary: $DATA_DIR/config/service-summary.md"
+    echo "  All Credentials: $DATA_DIR/config/service-credentials.env"
     echo "  Data Directory: $DATA_DIR"
+    echo ""
+    echo "✨ All Services Auto-Configured:"
+    echo "  - Download clients with media labels/categories"
+    echo "  - Homepage dashboard with service widgets"
+    echo "  - SMB shares for network file access"
+    echo "  - Database connections and API integrations"
     echo ""
     echo "Next Steps:"
     echo "1. Configure Tailscale for remote access: ./scripts/setup-tailscale.sh"
