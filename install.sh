@@ -200,13 +200,13 @@ create_bluelab_container() {
         log_success "Ubuntu 22.04 image already available"
     fi
     
-    distrobox create \
+    # Create container with automatic yes responses
+    echo "Y" | distrobox create \
         --name "$CONTAINER_NAME" \
         --image ubuntu:22.04 \
         --volume "$DATA_DIR:/var/lib/bluelab:rw" \
         --volume "$HOME:/home/$USER:rw" \
-        --additional-packages "curl wget git nano vim" \
-        --yes
+        --additional-packages "curl wget git nano vim"
         
     log_success "Container created successfully"
 }
