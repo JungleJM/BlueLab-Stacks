@@ -30,7 +30,7 @@ BlueLab-Stacks/
 
 ## What Needs to be Created
 
-### Phase 1A Implementation (Immediate Next Steps)
+### Phase 1A Implementation (Immediate Next Steps) - trying to do with a VM at the moment
 
 #### 1. Directory Structure Creation
 ```bash
