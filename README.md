@@ -1,10 +1,23 @@
 # BlueLab Stacks
 
+⚠️ **PROJECT ON HOLD** ⚠️
+
+**This project is currently on hold. Phase 1 should theoretically work but use at your own risk. Some services may require manual configuration and not all auto-configuration features are fully functional.**
+
 A comprehensive homelab automation system that transforms complex self-hosting infrastructure into a consumer-grade experience.
+
+## Known Issues (Why Project Is On Hold)
+
+- **Homepage Dashboard**: API integration errors prevent proper service status display
+- **Dockge**: Requires manual admin account creation and may not properly manage existing stacks
+- **Auto-Configuration**: Some services may still require manual setup despite auto-configuration scripts
+- **Service Integration**: Cross-service communication and API integration not fully functional
 
 ## Quick Start
 
 ### One-Command Installation
+
+⚠️ **USE AT YOUR OWN RISK - PROJECT ON HOLD**
 
 ```bash
 # Download and run the installer
@@ -12,6 +25,8 @@ curl -sSL https://raw.githubusercontent.com/JungleJM/BlueLab-Stacks/main/install
 ```
 
 ### Manual Installation
+
+⚠️ **USE AT YOUR OWN RISK - PROJECT ON HOLD**
 
 ```bash
 # Clone the repository
