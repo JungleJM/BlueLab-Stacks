@@ -187,12 +187,26 @@ create_bluelab_container() {
         distrobox rm "$CONTAINER_NAME" -f
     fi
     
+    # Check if Ubuntu image exists locally, if not pull it automatically
+    log "Checking for Ubuntu 22.04 image..."
+    if ! podman images | grep -q "ubuntu.*22.04" && ! docker images | grep -q "ubuntu.*22.04"; then
+        log "Ubuntu 22.04 image not found locally, downloading..."
+        if command -v podman >/dev/null 2>&1; then
+            podman pull docker.io/library/ubuntu:22.04
+        elif command -v docker >/dev/null 2>&1; then
+            docker pull ubuntu:22.04
+        fi
+    else
+        log_success "Ubuntu 22.04 image already available"
+    fi
+    
     distrobox create \
         --name "$CONTAINER_NAME" \
         --image ubuntu:22.04 \
         --volume "$DATA_DIR:/var/lib/bluelab:rw" \
         --volume "$HOME:/home/$USER:rw" \
-        --additional-packages "curl wget git nano vim"
+        --additional-packages "curl wget git nano vim" \
+        --yes
         
     log_success "Container created successfully"
 }
